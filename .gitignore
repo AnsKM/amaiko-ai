@@ -55,3 +55,4 @@ htmlcov/
 # API Keys and Secrets
 config.json
 secrets.json
+node_modules

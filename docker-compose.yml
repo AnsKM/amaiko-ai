@@ -1,0 +1,322 @@
+version: '3.8'
+
+services:
+  # ==============================================================================
+  # BACKEND SERVICE - NestJS Application
+  # ==============================================================================
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: amaiko-backend
+    ports:
+      - "8100:3000"
+    environment:
+      # Application
+      NODE_ENV: ${NODE_ENV:-development}
+      PORT: 3000
+      HOST: 0.0.0.0
+
+      # Database
+      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:-password}@postgres:5432/${POSTGRES_DB:-amaiko}
+
+      # Redis
+      REDIS_URL: redis://redis:6379
+
+      # Letta
+      LETTA_BASE_URL: http://letta:8283
+      LETTA_API_KEY: ${LETTA_API_KEY}
+
+      # Azure
+      AZURE_CLIENT_ID: ${AZURE_CLIENT_ID}
+      AZURE_CLIENT_SECRET: ${AZURE_CLIENT_SECRET}
+      AZURE_TENANT_ID: ${AZURE_TENANT_ID}
+
+      # Microsoft Bot
+      MICROSOFT_APP_ID: ${MICROSOFT_APP_ID}
+      MICROSOFT_APP_PASSWORD: ${MICROSOFT_APP_PASSWORD}
+      MICROSOFT_APP_TYPE: ${MICROSOFT_APP_TYPE:-MultiTenant}
+
+      # OpenAI
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      AZURE_OPENAI_ENDPOINT: ${AZURE_OPENAI_ENDPOINT}
+      AZURE_OPENAI_API_KEY: ${AZURE_OPENAI_API_KEY}
+
+      # ChromaDB
+      CHROMA_URL: http://chromadb:8000
+
+      # CRM Integrations
+      DYNAMICS_RESOURCE: ${DYNAMICS_RESOURCE}
+      DYNAMICS_CLIENT_ID: ${DYNAMICS_CLIENT_ID}
+      DYNAMICS_CLIENT_SECRET: ${DYNAMICS_CLIENT_SECRET}
+      SALESFORCE_CLIENT_ID: ${SALESFORCE_CLIENT_ID}
+      SALESFORCE_CLIENT_SECRET: ${SALESFORCE_CLIENT_SECRET}
+      SALESFORCE_INSTANCE_URL: ${SALESFORCE_INSTANCE_URL}
+      HUBSPOT_API_KEY: ${HUBSPOT_API_KEY}
+
+      # Security
+      JWT_SECRET: ${JWT_SECRET}
+      SESSION_SECRET: ${SESSION_SECRET}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      letta:
+        condition: service_started
+      chromadb:
+        condition: service_started
+    networks:
+      - amaiko-network
+    volumes:
+      - ./backend/logs:/app/logs
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # ==============================================================================
+  # FRONTEND SERVICE - Next.js Application
+  # ==============================================================================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: amaiko-frontend
+    ports:
+      - "8200:3000"
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      NEXT_PUBLIC_API_URL: http://backend:3000
+      NEXT_PUBLIC_LETTA_URL: http://letta:8283
+      NEXT_PUBLIC_APP_NAME: Amaiko AI Assistant
+      NEXT_PUBLIC_ENVIRONMENT: ${NODE_ENV:-development}
+    depends_on:
+      - backend
+    networks:
+      - amaiko-network
+    restart: unless-stopped
+
+  # ==============================================================================
+  # POSTGRESQL DATABASE - Primary Data Store
+  # ==============================================================================
+  postgres:
+    image: postgres:18-alpine
+    container_name: amaiko-postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-amaiko}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/database/init:/docker-entrypoint-initdb.d
+    networks:
+      - amaiko-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-amaiko}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ==============================================================================
+  # REDIS - Cache and Session Store
+  # ==============================================================================
+  redis:
+    image: redis:8-alpine
+    container_name: amaiko-redis
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-}
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - amaiko-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ==============================================================================
+  # LETTA - Stateful AI Agent Framework
+  # ==============================================================================
+  letta:
+    image: letta/letta:latest
+    container_name: amaiko-letta
+    ports:
+      - "8285:8283"
+    environment:
+      LETTA_SERVER_PASS: ${LETTA_API_KEY}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      AZURE_OPENAI_ENDPOINT: ${AZURE_OPENAI_ENDPOINT}
+      AZURE_OPENAI_API_KEY: ${AZURE_OPENAI_API_KEY}
+      LETTA_PG_URI: postgresql://postgres:${POSTGRES_PASSWORD:-password}@postgres:5432/letta
+      LETTA_PG_USER: postgres
+      LETTA_PG_PASSWORD: ${POSTGRES_PASSWORD:-password}
+      LETTA_PG_DB: letta
+      LETTA_PG_HOST: postgres
+      LETTA_PG_PORT: 5432
+    volumes:
+      - letta_data:/root/.letta
+      - ./backend/letta-config:/config
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - amaiko-network
+    restart: unless-stopped
+
+  # ==============================================================================
+  # CHROMADB - Vector Database for Knowledge Base
+  # ==============================================================================
+  chromadb:
+    image: chromadb/chroma:latest
+    container_name: amaiko-chromadb
+    ports:
+      - "8002:8000"
+    environment:
+      CHROMA_SERVER_AUTH_CREDENTIALS: ${CHROMA_AUTH_CREDENTIALS:-}
+      CHROMA_SERVER_AUTH_PROVIDER: ${CHROMA_AUTH_PROVIDER:-}
+      ALLOW_RESET: ${CHROMA_ALLOW_RESET:-false}
+      IS_PERSISTENT: true
+      PERSIST_DIRECTORY: /chroma/chroma
+    volumes:
+      - chroma_data:/chroma/chroma
+    networks:
+      - amaiko-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/heartbeat"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ==============================================================================
+  # NGINX - Reverse Proxy (Optional for production)
+  # ==============================================================================
+  nginx:
+    image: nginx:alpine
+    container_name: amaiko-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - ./nginx/logs:/var/log/nginx
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - amaiko-network
+    restart: unless-stopped
+    profiles:
+      - production
+
+  # ==============================================================================
+  # PGADMIN - PostgreSQL Management (Development only)
+  # ==============================================================================
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: amaiko-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@amaiko.local}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      - postgres
+    networks:
+      - amaiko-network
+    restart: unless-stopped
+    profiles:
+      - development
+
+  # ==============================================================================
+  # REDIS COMMANDER - Redis Management (Development only)
+  # ==============================================================================
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: amaiko-redis-commander
+    environment:
+      REDIS_HOSTS: local:redis:6380
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+    ports:
+      - "8081:8081"
+    depends_on:
+      - redis
+    networks:
+      - amaiko-network
+    restart: unless-stopped
+    profiles:
+      - development
+
+# ==============================================================================
+# VOLUMES
+# ==============================================================================
+volumes:
+  postgres_data:
+    driver: local
+    name: amaiko_postgres_data
+
+  redis_data:
+    driver: local
+    name: amaiko_redis_data
+
+  letta_data:
+    driver: local
+    name: amaiko_letta_data
+
+  chroma_data:
+    driver: local
+    name: amaiko_chroma_data
+
+  pgadmin_data:
+    driver: local
+    name: amaiko_pgadmin_data
+
+# ==============================================================================
+# NETWORKS
+# ==============================================================================
+networks:
+  amaiko-network:
+    driver: bridge
+    name: amaiko_network
+    ipam:
+      config:
+        - subnet: 172.25.0.0/16
+
+# ==============================================================================
+# USAGE INSTRUCTIONS
+# ==============================================================================
+# Development:
+#   docker-compose up -d
+#   docker-compose --profile development up -d  # Include dev tools
+#
+# Production:
+#   docker-compose --profile production up -d  # Include nginx
+#
+# View logs:
+#   docker-compose logs -f [service_name]
+#
+# Stop all services:
+#   docker-compose down
+#
+# Remove all data (WARNING: destroys volumes):
+#   docker-compose down -v
+#
+# Rebuild specific service:
+#   docker-compose up -d --build [service_name]
+# ==============================================================================

@@ -1,0 +1,413 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: amaiko
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: amaiko-config
+  namespace: amaiko
+data:
+  NODE_ENV: "production"
+  PORT: "3000"
+  LOG_LEVEL: "info"
+  DATABASE_HOST: "postgres-service"
+  DATABASE_PORT: "5432"
+  REDIS_HOST: "redis-service"
+  REDIS_PORT: "6379"
+  LETTA_BASE_URL: "http://letta-service:8283"
+  CHROMA_URL: "http://chromadb-service:8000"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: amaiko-secrets
+  namespace: amaiko
+type: Opaque
+stringData:
+  database-url: "postgresql://user:password@postgres-service:5432/amaiko"
+  azure-client-id: "YOUR_AZURE_CLIENT_ID"
+  azure-client-secret: "YOUR_AZURE_CLIENT_SECRET"
+  azure-tenant-id: "YOUR_AZURE_TENANT_ID"
+  microsoft-app-id: "YOUR_MICROSOFT_APP_ID"
+  microsoft-app-password: "YOUR_MICROSOFT_APP_PASSWORD"
+  openai-api-key: "YOUR_OPENAI_API_KEY"
+  jwt-secret: "YOUR_JWT_SECRET"
+  session-secret: "YOUR_SESSION_SECRET"
+---
+# ==============================================================================
+# BACKEND DEPLOYMENT
+# ==============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: amaiko-backend
+  namespace: amaiko
+  labels:
+    app: amaiko-backend
+    tier: backend
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: amaiko-backend
+  template:
+    metadata:
+      labels:
+        app: amaiko-backend
+        tier: backend
+    spec:
+      containers:
+      - name: backend
+        image: your-registry/amaiko-backend:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 3000
+          name: http
+          protocol: TCP
+        env:
+        - name: NODE_ENV
+          valueFrom:
+            configMapKeyRef:
+              name: amaiko-config
+              key: NODE_ENV
+        - name: PORT
+          valueFrom:
+            configMapKeyRef:
+              name: amaiko-config
+              key: PORT
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: amaiko-secrets
+              key: database-url
+        - name: AZURE_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: amaiko-secrets
+              key: azure-client-id
+        - name: AZURE_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: amaiko-secrets
+              key: azure-client-secret
+        - name: AZURE_TENANT_ID
+          valueFrom:
+            secretKeyRef:
+              name: amaiko-secrets
+              key: azure-tenant-id
+        - name: MICROSOFT_APP_ID
+          valueFrom:
+            secretKeyRef:
+              name: amaiko-secrets
+              key: microsoft-app-id
+        - name: MICROSOFT_APP_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: amaiko-secrets
+              key: microsoft-app-password
+        - name: OPENAI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: amaiko-secrets
+              key: openai-api-key
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: amaiko-secrets
+              key: jwt-secret
+        - name: REDIS_URL
+          value: "redis://redis-service:6379"
+        - name: LETTA_BASE_URL
+          valueFrom:
+            configMapKeyRef:
+              name: amaiko-config
+              key: LETTA_BASE_URL
+        - name: CHROMA_URL
+          valueFrom:
+            configMapKeyRef:
+              name: amaiko-config
+              key: CHROMA_URL
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "500m"
+          limits:
+            memory: "2Gi"
+            cpu: "2000m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 3000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 3000
+          initialDelaySeconds: 20
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: amaiko-backend-service
+  namespace: amaiko
+  labels:
+    app: amaiko-backend
+spec:
+  type: LoadBalancer
+  selector:
+    app: amaiko-backend
+  ports:
+  - port: 80
+    targetPort: 3000
+    protocol: TCP
+    name: http
+  sessionAffinity: ClientIP
+---
+# ==============================================================================
+# FRONTEND DEPLOYMENT
+# ==============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: amaiko-frontend
+  namespace: amaiko
+  labels:
+    app: amaiko-frontend
+    tier: frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: amaiko-frontend
+  template:
+    metadata:
+      labels:
+        app: amaiko-frontend
+        tier: frontend
+    spec:
+      containers:
+      - name: frontend
+        image: your-registry/amaiko-frontend:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 3000
+          name: http
+          protocol: TCP
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: NEXT_PUBLIC_API_URL
+          value: "http://amaiko-backend-service"
+        - name: NEXT_PUBLIC_LETTA_URL
+          value: "http://letta-service:8283"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "1000m"
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 3000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 3000
+          initialDelaySeconds: 20
+          periodSeconds: 5
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: amaiko-frontend-service
+  namespace: amaiko
+  labels:
+    app: amaiko-frontend
+spec:
+  type: LoadBalancer
+  selector:
+    app: amaiko-frontend
+  ports:
+  - port: 80
+    targetPort: 3000
+    protocol: TCP
+    name: http
+---
+# ==============================================================================
+# POSTGRESQL DATABASE
+# ==============================================================================
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-pvc
+  namespace: amaiko
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 50Gi
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres
+  namespace: amaiko
+spec:
+  serviceName: postgres-service
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:18-alpine
+        ports:
+        - containerPort: 5432
+          name: postgres
+        env:
+        - name: POSTGRES_DB
+          value: "amaiko"
+        - name: POSTGRES_USER
+          value: "postgres"
+        - name: POSTGRES_PASSWORD
+          value: "your-postgres-password"
+        - name: PGDATA
+          value: "/var/lib/postgresql/data/pgdata"
+        volumeMounts:
+        - name: postgres-storage
+          mountPath: /var/lib/postgresql/data
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "500m"
+          limits:
+            memory: "2Gi"
+            cpu: "1000m"
+      volumes:
+      - name: postgres-storage
+        persistentVolumeClaim:
+          claimName: postgres-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-service
+  namespace: amaiko
+spec:
+  selector:
+    app: postgres
+  ports:
+  - port: 5432
+    targetPort: 5432
+  clusterIP: None
+---
+# ==============================================================================
+# REDIS CACHE
+# ==============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis
+  namespace: amaiko
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      containers:
+      - name: redis
+        image: redis:8-alpine
+        ports:
+        - containerPort: 6379
+          name: redis
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-service
+  namespace: amaiko
+spec:
+  selector:
+    app: redis
+  ports:
+  - port: 6379
+    targetPort: 6379
+---
+# ==============================================================================
+# HORIZONTAL POD AUTOSCALER
+# ==============================================================================
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: amaiko-backend-hpa
+  namespace: amaiko
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: amaiko-backend
+  minReplicas: 3
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: amaiko-frontend-hpa
+  namespace: amaiko
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: amaiko-frontend
+  minReplicas: 2
+  maxReplicas: 5
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70

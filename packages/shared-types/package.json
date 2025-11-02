@@ -1,0 +1,14 @@
+{
+  "name": "@amaiko/shared-types",
+  "version": "1.0.0",
+  "description": "Shared TypeScript types for Amaiko AI",
+  "main": "index.ts",
+  "types": "index.ts",
+  "private": true,
+  "scripts": {
+    "build": "tsc"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.0"
+  }
+}

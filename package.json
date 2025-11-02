@@ -1,0 +1,33 @@
+{
+  "name": "amaiko-ai",
+  "version": "1.0.0",
+  "description": "Enterprise AI Assistant for Microsoft Teams - Amaiko.ai Clone",
+  "private": true,
+  "workspaces": [
+    "backend",
+    "frontend",
+    "packages/*"
+  ],
+  "scripts": {
+    "backend": "cd backend && npm run start:dev",
+    "frontend": "cd frontend && npm run dev",
+    "build": "npm run build --workspaces",
+    "test": "npm run test --workspaces",
+    "lint": "npm run lint --workspaces"
+  },
+  "keywords": [
+    "ai",
+    "teams",
+    "microsoft",
+    "letta",
+    "mcp",
+    "nestjs",
+    "nextjs"
+  ],
+  "author": "ansmohal@gmail.com",
+  "license": "MIT",
+  "engines": {
+    "node": ">=24.0.0",
+    "npm": ">=10.0.0"
+  }
+}

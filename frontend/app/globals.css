@@ -1,0 +1,371 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Browser Use Color System - Light Mode */
+    --bg: #fcfcfc;
+    --page-bg: var(--bg);
+    --demo-bg: var(--stone-0);
+    --element-bg: var(--stone-0);
+    --nav-default: var(--zinc-600);
+    --primary-button-bg: var(--pumpkin-500);
+    --button-label: var(--stone-50);
+    --stroke-muted: var(--zinc-200);
+    --copy-strong: var(--zinc-950);
+    --copy-secondary: var(--zinc-500);
+    --active-tab-bg: var(--pumpkin-50);
+    --active-tab-label: var(--pumpkin-700);
+    --default-tab-label: var(--zinc-500);
+    --color-primary: var(--pumpkin-500);
+    --copy-dark: var(--zinc-800);
+    --logo: var(--zinc-950);
+    --border: #27272a;
+    --radius: 0.5rem;
+
+    /* Pumpkin/Orange Scale */
+    --pumpkin-50: #fff8f3;
+    --pumpkin-100: #ffddc5;
+    --pumpkin-200: #ffc397;
+    --pumpkin-300: #ffa969;
+    --pumpkin-400: #fe8f3c;
+    --pumpkin-500: #fe750e;
+    --pumpkin-600: #db6103;
+    --pumpkin-700: #ac4e04;
+    --pumpkin-800: #7e3b04;
+    --pumpkin-900: #512704;
+    --pumpkin-950: #251202;
+
+    /* Zinc Scale */
+    --zinc-50: #fafafa;
+    --zinc-100: #f4f4f5;
+    --zinc-200: #e4e4e7;
+    --zinc-300: #d4d4d8;
+    --zinc-400: #a1a1aa;
+    --zinc-500: #71717a;
+    --zinc-600: #52525b;
+    --zinc-700: #3f3f46;
+    --zinc-800: #27272a;
+    --zinc-900: #18181b;
+    --zinc-950: #09090b;
+
+    /* Stone Scale */
+    --stone-0: #ffffff;
+    --stone-50: #fafaf9;
+    --stone-200: #e7e5e4;
+  }
+
+  .dark {
+    /* Browser Use Color System - Dark Mode */
+    --bg: #09090b;
+    --page-bg: var(--zinc-950);
+    --demo-bg: var(--zinc-950);
+    --element-bg: var(--zinc-900);
+    --nav-default: var(--zinc-100);
+    --primary-button-bg: var(--pumpkin-500);
+    --button-label: var(--stone-50);
+    --stroke-muted: var(--zinc-800);
+    --copy-strong: var(--zinc-50);
+    --copy-secondary: var(--zinc-400);
+    --active-tab-bg: var(--pumpkin-950);
+    --active-tab-label: var(--pumpkin-400);
+    --default-tab-label: var(--zinc-400);
+    --color-primary: var(--pumpkin-500);
+    --copy-dark: var(--zinc-400);
+    --logo: var(--stone-0);
+  }
+
+  * {
+    @apply border-[var(--border)];
+  }
+
+  body {
+    @apply bg-[var(--page-bg)] text-[var(--copy-strong)];
+    font-family: var(--font-geist-sans, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif);
+    font-feature-settings: 'rlig' 1, 'calt' 1;
+    overflow-x: hidden;
+  }
+}
+
+@layer components {
+  /* Typography */
+  .text-display {
+    @apply text-5xl md:text-7xl font-bold tracking-tight;
+    letter-spacing: -0.03em;
+  }
+
+  .text-heading-1 {
+    @apply text-4xl md:text-5xl font-bold tracking-tight;
+    letter-spacing: -0.02em;
+  }
+
+  .text-heading-2 {
+    @apply text-3xl md:text-4xl font-bold tracking-tight;
+    letter-spacing: -0.02em;
+  }
+
+  .text-heading-3 {
+    @apply text-2xl md:text-3xl font-semibold tracking-tight;
+    letter-spacing: -0.015em;
+  }
+
+  .text-copy-large {
+    @apply text-base md:text-lg leading-relaxed;
+    letter-spacing: -0.01em;
+    color: var(--copy-secondary);
+  }
+
+  .text-copy-secondary {
+    color: var(--copy-secondary);
+  }
+
+  /* Buttons */
+  .btn-primary {
+    @apply px-6 py-3 rounded-lg font-medium transition-all duration-200;
+    background-color: var(--primary-button-bg);
+    color: var(--button-label);
+  }
+
+  .btn-primary:hover {
+    @apply scale-105 shadow-lg;
+    box-shadow: 0 0 30px rgba(254, 117, 14, 0.3);
+  }
+
+  .btn-secondary {
+    @apply px-6 py-3 rounded-lg font-medium transition-all duration-200;
+    background-color: var(--element-bg);
+    color: var(--copy-strong);
+    border: 1px solid var(--stroke-muted);
+  }
+
+  .btn-secondary:hover {
+    @apply scale-105;
+    border-color: var(--color-primary);
+  }
+
+  /* Cards */
+  .card {
+    @apply rounded-xl border p-6 transition-all duration-300;
+    background-color: var(--element-bg);
+    border-color: var(--stroke-muted);
+  }
+
+  .card:hover {
+    @apply shadow-lg;
+    border-color: var(--color-primary);
+  }
+
+  /* Gradients */
+  .gradient-text {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(
+      135deg,
+      var(--pumpkin-400) 0%,
+      var(--pumpkin-600) 100%
+    );
+  }
+
+  .gradient-bg {
+    background-image: linear-gradient(
+      135deg,
+      var(--pumpkin-500) 0%,
+      var(--pumpkin-700) 100%
+    );
+  }
+
+  /* Terminal/Code Blocks */
+  .terminal {
+    @apply rounded-lg p-6 font-mono text-sm;
+    background-color: var(--demo-bg);
+    border: 1px solid var(--stroke-muted);
+  }
+
+  .code-block {
+    @apply font-mono text-sm;
+  }
+
+  .code-comment {
+    color: var(--zinc-500);
+  }
+
+  .code-string {
+    color: var(--pumpkin-400);
+  }
+
+  .code-keyword {
+    color: #a78bfa;
+  }
+
+  .code-function {
+    color: #60a5fa;
+  }
+
+  /* Animations */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateX(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes pulse-glow {
+    0%, 100% {
+      box-shadow: 0 0 20px rgba(254, 117, 14, 0.2);
+    }
+    50% {
+      box-shadow: 0 0 40px rgba(254, 117, 14, 0.4);
+    }
+  }
+
+  @keyframes gradient-shift {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.6s ease-out;
+  }
+
+  .animate-slide-in {
+    animation: slideIn 0.6s ease-out;
+  }
+
+  .animate-pulse-glow {
+    animation: pulse-glow 2s ease-in-out infinite;
+  }
+
+  .animate-gradient {
+    background-size: 200% 200%;
+    animation: gradient-shift 3s ease infinite;
+  }
+
+  /* Container */
+  .container-custom {
+    @apply max-w-7xl mx-auto px-6 md:px-8;
+  }
+
+  /* Section Spacing */
+  .section-spacing {
+    @apply py-16 md:py-24;
+  }
+
+  /* Grid Layouts */
+  .grid-features {
+    @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6;
+  }
+
+  /* Logo Grid */
+  .logo-grid {
+    @apply grid grid-cols-3 md:grid-cols-5 gap-8 items-center opacity-50;
+  }
+
+  /* Badges */
+  .badge {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-sm font-medium;
+  }
+
+  .badge-primary {
+    background-color: var(--active-tab-bg);
+    color: var(--active-tab-label);
+  }
+
+  .badge-secondary {
+    background-color: var(--element-bg);
+    color: var(--copy-secondary);
+    border: 1px solid var(--stroke-muted);
+  }
+
+  /* Tabs */
+  .tab {
+    @apply px-4 py-2 rounded-lg font-medium transition-all duration-200 cursor-pointer;
+    color: var(--default-tab-label);
+  }
+
+  .tab.active {
+    background-color: var(--active-tab-bg);
+    color: var(--active-tab-label);
+  }
+
+  .tab:not(.active):hover {
+    @apply opacity-70;
+  }
+
+  /* Stats */
+  .stat-card {
+    @apply text-center p-6;
+  }
+
+  .stat-number {
+    @apply text-3xl md:text-4xl font-bold mb-2;
+    color: var(--color-primary);
+  }
+
+  .stat-label {
+    @apply text-sm;
+    color: var(--copy-secondary);
+  }
+
+  /* Footer */
+  .footer-link {
+    @apply transition-colors duration-200;
+    color: var(--copy-secondary);
+  }
+
+  .footer-link:hover {
+    color: var(--color-primary);
+  }
+
+  /* Scrollbar Styling */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--element-bg);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--zinc-700);
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--zinc-600);
+  }
+
+  /* Selection */
+  ::selection {
+    background-color: var(--pumpkin-500);
+    color: var(--stone-0);
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}

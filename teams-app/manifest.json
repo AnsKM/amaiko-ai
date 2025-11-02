@@ -1,0 +1,135 @@
+{
+  "$schema": "https://developer.microsoft.com/en-us/json-schemas/teams/v1.16/MicrosoftTeams.schema.json",
+  "manifestVersion": "1.16",
+  "version": "1.0.0",
+  "id": "YOUR_APP_ID_REPLACE_ME",
+  "packageName": "com.yourcompany.amaiko",
+  "developer": {
+    "name": "Your Company Name",
+    "websiteUrl": "https://your-company.com",
+    "privacyUrl": "https://your-company.com/privacy",
+    "termsOfUseUrl": "https://your-company.com/terms"
+  },
+  "name": {
+    "short": "Amaiko AI",
+    "full": "Amaiko AI Assistant - Your Personal AI Buddy"
+  },
+  "description": {
+    "short": "Your personal AI assistant for emails, calendar, and productivity",
+    "full": "Amaiko AI is an intelligent assistant that helps you manage emails, calendar events, files, and CRM tasks. It learns from your interactions and provides personalized assistance integrated directly into Microsoft Teams."
+  },
+  "icons": {
+    "outline": "outline.png",
+    "color": "color.png"
+  },
+  "accentColor": "#0078D4",
+  "bots": [
+    {
+      "botId": "YOUR_MICROSOFT_APP_ID_REPLACE_ME",
+      "scopes": ["personal", "team", "groupchat"],
+      "supportsFiles": true,
+      "isNotificationOnly": false,
+      "supportsCalling": false,
+      "supportsVideo": false,
+      "commandLists": [
+        {
+          "scopes": ["personal", "team", "groupchat"],
+          "commands": [
+            {
+              "title": "help",
+              "description": "Get help and learn what I can do"
+            },
+            {
+              "title": "search emails",
+              "description": "Search your emails with a query"
+            },
+            {
+              "title": "check calendar",
+              "description": "View your upcoming calendar events"
+            },
+            {
+              "title": "create event",
+              "description": "Create a new calendar event"
+            },
+            {
+              "title": "search files",
+              "description": "Search for files in OneDrive/SharePoint"
+            },
+            {
+              "title": "daily briefing",
+              "description": "Get your daily summary of emails and calendar"
+            },
+            {
+              "title": "start workflow",
+              "description": "Start an automated workflow"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "permissions": [
+    "identity",
+    "messageTeamMembers"
+  ],
+  "validDomains": [
+    "your-domain.com",
+    "*.your-domain.com",
+    "login.microsoftonline.com",
+    "graph.microsoft.com"
+  ],
+  "webApplicationInfo": {
+    "id": "YOUR_AZURE_APP_ID_REPLACE_ME",
+    "resource": "api://your-domain.com/YOUR_AZURE_APP_ID_REPLACE_ME"
+  },
+  "authorization": {
+    "permissions": {
+      "resourceSpecific": [
+        {
+          "name": "OnlineMeeting.ReadBasic.Chat",
+          "type": "Delegated"
+        },
+        {
+          "name": "ChatMessage.Read.Chat",
+          "type": "Application"
+        }
+      ]
+    }
+  },
+  "showLoadingIndicator": true,
+  "isFullScreen": false,
+  "activities": {
+    "activityTypes": [
+      {
+        "type": "taskCreated",
+        "description": "Task created notification",
+        "templateText": "New task: {taskName}"
+      },
+      {
+        "type": "emailProcessed",
+        "description": "Email processed notification",
+        "templateText": "Processed email: {emailSubject}"
+      },
+      {
+        "type": "workflowCompleted",
+        "description": "Workflow completed notification",
+        "templateText": "Workflow completed: {workflowName}"
+      }
+    ]
+  },
+  "configurableTabs": [],
+  "staticTabs": [
+    {
+      "entityId": "conversations",
+      "scopes": ["personal"]
+    },
+    {
+      "entityId": "about",
+      "scopes": ["personal"]
+    }
+  ],
+  "localizationInfo": {
+    "defaultLanguageTag": "en-us",
+    "additionalLanguages": []
+  }
+}
