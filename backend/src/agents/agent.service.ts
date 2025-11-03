@@ -98,7 +98,7 @@ export class AgentService {
       const agentParams: CreateAgentParams = {
         name: `agent-${userId}`,
         model:
-          this.configService.get<string>('DEFAULT_LLM_MODEL') || 'azure/gpt-4o',
+          this.configService.get<string>('DEFAULT_LLM_MODEL') || 'azure/gpt-5',
         memoryBlocks: [
           {
             label: 'persona',

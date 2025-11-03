@@ -82,7 +82,7 @@ Amaiko AI is a production-ready enterprise AI assistant integrated into Microsof
 - **Database**: PostgreSQL 18
 - **Cache**: Redis 8
 - **AI Framework**: Letta (formerly MemGPT)
-- **LLM**: Azure OpenAI (GPT-4o)
+- **LLM**: Azure OpenAI (GPT-5)
 - **Vector Store**: ChromaDB
 - **Authentication**: Microsoft Entra ID (MSAL)
 - **API Integration**: Microsoft Graph API

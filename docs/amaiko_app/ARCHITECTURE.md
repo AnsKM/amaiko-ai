@@ -161,10 +161,10 @@ backend/src/
 │  │  TypeOrmModule (Database)                             │  │
 │  └───────────────────────────────────────────────────────┘  │
 │                                                             │
-│  ┌─────────────┐     ┌─────────────┐     ┌─────────────┐  │
-│  │   Agents    │────►│     MCP     │     │    Graph    │  │
-│  │   Module    │     │   Module    │◄────│   Module    │  │
-│  └─────────────┘     └─────────────┘     └─────────────┘  │
+│  ┌─────────────┐     ┌─────────────┐     ┌─────────────┐    │
+│  │   Agents    │────►│     MCP     │     │    Graph    │    │
+│  │   Module    │     │   Module    │◄────│   Module    │    │
+│  └─────────────┘     └─────────────┘     └─────────────┘    │
 └─────────────────────────────────────────────────────────────┘
 
 Dependency Flow:
@@ -618,7 +618,7 @@ Letta (formerly MemGPT) provides stateful AI agents with long-term memory:
 │  ┌───────────────────────────────────────────────────────┐  │
 │  │                    Core Processor                     │  │
 │  │  ┌──────────────────────────────────────────────────┐ │  │
-│  │  │        LLM (GPT-4o / Azure OpenAI)               │ │  │
+│  │  │        LLM (GPT-5 / Azure OpenAI)               │ │  │
 │  │  └──────────────────────────────────────────────────┘ │  │
 │  └───────────────────────────────────────────────────────┘  │
 │                                                             │
@@ -692,7 +692,7 @@ Each agent has multiple memory blocks:
 
 const agentParams: CreateAgentParams = {
   name: `agent-${userId}`,
-  model: 'azure/gpt-4o',
+  model: 'azure/gpt-5',
   memoryBlocks: [
     {
       label: 'persona',
@@ -1153,7 +1153,7 @@ services:
 | Bot Framework | botbuilder                        | 4.23.x   | Teams bot integration     |
 | AI Framework  | Letta (@letta-ai/letta-client)    | Latest   | Stateful AI agents        |
 | Vector DB     | ChromaDB                          | 3.1.x    | Knowledge base            |
-| LLM           | Azure OpenAI                      | GPT-4o   | Language model            |
+| LLM           | Azure OpenAI                      | GPT-5   | Language model            |
 | MCP           | @modelcontextprotocol/sdk         | 1.20.x   | Tool protocol             |
 
 ### Infrastructure

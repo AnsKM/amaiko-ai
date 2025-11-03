@@ -279,7 +279,7 @@ async createUserAgent(userId: string, userProfile: any): Promise<string> {
       archival: [],
     },
     tools: this.getAvailableTools(),
-    model: 'gpt-4o',
+    model: 'gpt-5',
     contextWindow: 128000,
   });
 
@@ -1028,7 +1028,7 @@ async generateEmailReply(
     userPreferences: this.getUserPreferences(context.userId),
   };
 
-  // 4. Generate reply using GPT-4o
+  // 4. Generate reply using GPT-5
   const reply = await this.lettaClient.sendMessage(
     this.getAgentId(context.userId),
     {
@@ -1181,7 +1181,7 @@ export class EmailAutoCategorizer {
     // 1. Get email content
     const email = await this.graphService.getEmail(userToken, emailId);
 
-    // 2. Classify using GPT-4o
+    // 2. Classify using GPT-5
     const classification = await this.classifyEmail(email);
 
     // 3. Determine target folder
@@ -1225,7 +1225,7 @@ export class EmailAutoCategorizer {
     `;
 
     const response = await this.openai.chat.completions.create({
-      model: 'gpt-4o',
+      model: 'gpt-5',
       messages: [{ role: 'user', content: prompt }],
       response_format: { type: 'json_object' },
     });
@@ -2154,7 +2154,7 @@ private rankFilesByRelevance(
 │ Step 3: AI Summarization                                │
 ├─────────────────────────────────────────────────────────┤
 │                                                           │
-│  Processing with GPT-4o:                                │
+│  Processing with GPT-5:                                │
 │                                                           │
 │  ⏳ Analyzing document structure...                      │
 │  ⏳ Extracting key points...                             │
@@ -2286,7 +2286,7 @@ export class DocumentSummarizerService {
     // 3. Analyze document structure
     const structure = this.analyzeDocumentStructure(extractedText);
 
-    // 4. Generate summary using GPT-4o
+    // 4. Generate summary using GPT-5
     const summary = await this.generateSummary(extractedText, structure);
 
     // 5. Extract action items
@@ -2329,7 +2329,7 @@ export class DocumentSummarizerService {
     `;
 
     const response = await this.openai.chat.completions.create({
-      model: 'gpt-4o',
+      model: 'gpt-5',
       messages: [{ role: 'user', content: prompt }],
       response_format: { type: 'json_object' },
       max_tokens: 2000,
@@ -2354,7 +2354,7 @@ export class DocumentSummarizerService {
     `;
 
     const response = await this.openai.chat.completions.create({
-      model: 'gpt-4o',
+      model: 'gpt-5',
       messages: [{ role: 'user', content: prompt }],
       response_format: { type: 'json_object' },
     });
@@ -2435,7 +2435,7 @@ export class DocumentSummarizerService {
 │ Step 3: AI Analysis                                     │
 ├─────────────────────────────────────────────────────────┤
 │                                                         │
-│  GPT-4o analyzes transcript and chat:                   │
+│  GPT-5 analyzes transcript and chat:                   │
 │                                                         │
 │  ⏳ Identifying key discussion points...                │
 │  ⏳ Extracting decisions made...                        │
@@ -2701,7 +2701,7 @@ export class MeetingSummarizerService {
     `;
 
     const response = await this.openai.chat.completions.create({
-      model: 'gpt-4o',
+      model: 'gpt-5',
       messages: [{ role: 'user', content: prompt }],
       response_format: { type: 'json_object' },
       max_tokens: 4000,
@@ -2840,7 +2840,7 @@ export class MeetingSummarizerService {
 │                                                           │
 │  Agent synthesizes answer from multiple sources:        │
 │                                                           │
-│  GPT-4o processes:                                       │
+│  GPT-5 processes:                                       │
 │  • Top 3 search results                                  │
 │  • Source documents metadata                             │
 │  • Company context                                       │
@@ -3041,7 +3041,7 @@ export class KnowledgeBaseService {
     `;
 
     const response = await this.openai.chat.completions.create({
-      model: 'gpt-4o',
+      model: 'gpt-5',
       messages: [{ role: 'user', content: prompt }],
       temperature: 0.7,
     });
@@ -3454,7 +3454,7 @@ This document provides comprehensive user flow documentation for the Amaiko AI e
 
 1. **Seamless Authentication**: OAuth 2.0 flows with automatic token refresh ensure uninterrupted service
 2. **Multi-Agent Architecture**: Specialized agents collaborate to handle complex workflows
-3. **Natural Language Understanding**: GPT-4o powers intent recognition and response generation
+3. **Natural Language Understanding**: GPT-5 powers intent recognition and response generation
 4. **Proactive Assistance**: System-initiated notifications and workflow automation
 5. **Knowledge Base Integration**: ChromaDB vector search for organizational knowledge
 6. **Error Resilience**: Graceful error handling with automatic recovery

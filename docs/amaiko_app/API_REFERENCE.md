@@ -347,7 +347,7 @@ async createUserAgent(userId: string, userProfile: any): Promise<string> {
       archival: [],
     },
     tools: this.getAvailableTools(),
-    model: 'gpt-4o',
+    model: 'gpt-5',
     contextWindow: 128000,
   });
 
@@ -1665,7 +1665,7 @@ Amaiko uses Letta (formerly MemGPT) for stateful AI agents. The Letta API is acc
     "archival": []
   },
   "tools": ["search_emails", "get_calendar_events", ...],
-  "model": "gpt-4o",
+  "model": "gpt-5",
   "context_window": 128000
 }
 ```
@@ -1684,7 +1684,7 @@ agent = letta_client.create_agent(
     ),
     tools=tool_list,
     llm_config=LLMConfig(
-        model="gpt-4o",
+        model="gpt-5",
         context_window=128000
     )
 )

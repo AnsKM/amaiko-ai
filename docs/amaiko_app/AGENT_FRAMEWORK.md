@@ -62,7 +62,7 @@ Letta provides a production-ready framework for building stateful LLM applicatio
 │  ┌──────────────────────────────────────────────────────┐  │
 │  │                 LLM Engine                           │  │
 │  │                                                      │  │
-│  │  Model: Azure OpenAI GPT-4o                          │  │
+│  │  Model: Azure OpenAI GPT-5                          │  │
 │  │  - Context window: 128K tokens                       │  │
 │  │  - Response generation                               │  │
 │  │  - Tool call planning                                │  │
@@ -126,7 +126,7 @@ Letta provides a production-ready framework for building stateful LLM applicatio
 // backend/src/agents/config/agent.config.ts
 export interface AgentConfiguration {
   // Model settings
-  model: string;                    // 'azure/gpt-4o'
+  model: string;                    // 'azure/gpt-5'
   temperature: number;              // 0.7
   maxTokens: number;                // 4096
 
@@ -145,7 +145,7 @@ export interface AgentConfiguration {
 }
 
 export const DEFAULT_AGENT_CONFIG: AgentConfiguration = {
-  model: 'azure/gpt-4o',
+  model: 'azure/gpt-5',
   temperature: 0.7,
   maxTokens: 4096,
   memoryBlocks: [
@@ -776,7 +776,7 @@ const briefing = await agent.generateBriefing({ emails, events, files });
 ### Context Budget Allocation
 
 ```
-Total Context Window: 128K tokens (GPT-4o)
+Total Context Window: 128K tokens (GPT-5)
 
 Allocation:
 ┌──────────────────────────────────────┐
