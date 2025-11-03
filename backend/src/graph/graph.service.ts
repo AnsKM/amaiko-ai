@@ -325,8 +325,7 @@ export class GraphService {
       const client = await this.getClient(userToken);
 
       const files = await client
-        .api('/me/drive/root/search')
-        .query({ q: query })
+        .api(`/me/drive/root/search(q='${encodeURIComponent(query)}')`)
         .top(maxResults)
         .select('name,size,webUrl,lastModifiedDateTime,file,folder')
         .get();
@@ -342,17 +341,27 @@ export class GraphService {
   /**
    * Get file content
    */
-  async getFileContent(userToken: string, itemId: string): Promise<any> {
+  async getFileDownloadInfo(
+    userToken: string,
+    itemId: string,
+  ): Promise<Record<string, any>> {
     try {
       const client = await this.getClient(userToken);
 
-      const content = await client
-        .api(`/me/drive/items/${itemId}/content`)
+      const metadata = await client
+        .api(`/me/drive/items/${itemId}`)
+        .select('id,name,size,lastModifiedDateTime,@microsoft.graph.downloadUrl')
         .get();
 
-      return content;
+      return {
+        id: metadata.id,
+        name: metadata.name,
+        size: metadata.size,
+        lastModifiedDateTime: metadata.lastModifiedDateTime,
+        downloadUrl: metadata['@microsoft.graph.downloadUrl'] ?? null,
+      };
     } catch (error) {
-      this.logger.error('Error getting file content', error);
+      this.logger.error('Error getting file download info', error);
       throw error;
     }
   }
@@ -367,8 +376,13 @@ export class GraphService {
     try {
       const client = await this.getClient(userToken);
 
+      const path =
+        folderId === 'root'
+          ? '/me/drive/root/children'
+          : `/me/drive/items/${encodeURIComponent(folderId)}/children`;
+
       const files = await client
-        .api(`/me/drive/items/${folderId}/children`)
+        .api(path)
         .select('name,size,webUrl,lastModifiedDateTime,file,folder')
         .get();
 

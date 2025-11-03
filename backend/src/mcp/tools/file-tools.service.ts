@@ -148,23 +148,20 @@ export class FileToolsService {
 
   /**
    * Tool: get_file_content
-   * Get file content by ID
-   * Note: For large files or binary files, returns download URL instead
+   * Retrieve secure download information for a file by ID
    */
   async getFileContent(
-    itemId: string,
+    params: { itemId: string },
     context: McpContext,
   ): Promise<McpToolResult> {
     try {
       this.logger.log(
-        `Getting file content for item ${itemId}, user ${context.userId}`,
+        `Getting file download info for item ${params.itemId}, user ${context.userId}`,
       );
 
-      // For now, we'll return the file metadata and a note about downloading
-      // In production, you might want to handle small text files differently
-      const content = await this.graphService.getFileContent(
+      const info = await this.graphService.getFileDownloadInfo(
         context.userToken,
-        itemId,
+        params.itemId,
       );
 
       return {
@@ -174,10 +171,12 @@ export class FileToolsService {
             text: JSON.stringify(
               {
                 status: 'success',
-                message:
-                  'File content retrieved. For large files, use the download URL.',
-                itemId,
-                contentLength: content?.length || 0,
+                message: 'File download information retrieved successfully',
+                itemId: info.id,
+                name: info.name,
+                size: info.size,
+                lastModifiedDateTime: info.lastModifiedDateTime,
+                downloadUrl: info.downloadUrl,
               },
               null,
               2,
@@ -186,7 +185,7 @@ export class FileToolsService {
         ],
       };
     } catch (error) {
-      this.logger.error('Error getting file content', error);
+      this.logger.error('Error getting file download info', error);
       return {
         content: [
           {
@@ -243,7 +242,7 @@ export class FileToolsService {
       },
       {
         name: 'get_file_content',
-        description: 'Get file content by ID',
+        description: 'Retrieve download information for a file by ID',
         parameters: {
           type: 'object',
           properties: {

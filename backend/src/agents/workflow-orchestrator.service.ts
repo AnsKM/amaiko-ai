@@ -26,95 +26,34 @@ export interface WorkflowDefinition {
 export class WorkflowOrchestratorService {
   private readonly logger = new Logger(WorkflowOrchestratorService.name);
 
-  // Built-in workflow definitions
-  private workflows: Map<string, WorkflowDefinition> = new Map([
-    [
-      'customer_followup',
-      {
-        name: 'customer_followup',
-        description:
-          'After a meeting, create CRM follow-up tasks, draft recap email, and schedule reminders',
-        stages: [
-          {
-            id: 'ingest_meeting',
-            agent: 'knowledge-agent',
-            tool: 'vector_store_ingest',
-          },
-          {
-            id: 'update_crm',
-            agent: 'crm-agent',
-            tool: 'crm_create_opportunity',
-          },
-          {
-            id: 'draft_email',
-            agent: 'communications-agent',
-            tool: 'send_email',
-          },
-          {
-            id: 'calendar_hold',
-            agent: 'calendar-agent',
-            tool: 'create_calendar_event',
-          },
-        ],
-      },
-    ],
-    [
-      'email_triage',
-      {
-        name: 'email_triage',
-        description:
-          'Analyze inbox, categorize important emails, and create calendar events for action items',
-        stages: [
-          {
-            id: 'search_emails',
-            agent: 'email-agent',
-            tool: 'search_emails',
-          },
-          {
-            id: 'analyze_content',
-            agent: 'knowledge-agent',
-            tool: 'semantic_analysis',
-          },
-          {
-            id: 'create_tasks',
-            agent: 'calendar-agent',
-            tool: 'create_calendar_event',
-          },
-        ],
-      },
-    ],
-    [
-      'daily_briefing',
-      {
-        name: 'daily_briefing',
-        description:
-          'Generate daily summary of calendar, emails, and pending tasks',
-        stages: [
-          {
-            id: 'get_calendar',
-            agent: 'calendar-agent',
-            tool: 'get_calendar_events',
-          },
-          {
-            id: 'get_emails',
-            agent: 'email-agent',
-            tool: 'search_emails',
-          },
-          {
-            id: 'summarize',
-            agent: 'knowledge-agent',
-            tool: 'generate_summary',
-          },
-        ],
-      },
-    ],
-  ]);
+  // Registered workflow definitions (can be extended at runtime)
+  private workflows: Map<string, WorkflowDefinition> = new Map();
+
+  // In-memory store for sensitive workflow execution data (e.g., user tokens)
+  private workflowTokens: Map<string, string> = new Map();
 
   constructor(
     @InjectRepository(WorkflowRun)
     private workflowRunRepository: Repository<WorkflowRun>,
     private agentService: AgentService,
-  ) {}
+  ) {
+    this.registerWorkflow({
+      name: 'inbox_review',
+      description:
+        'Pull a quick list of recent emails to help the user stay on top of follow-ups.',
+      stages: [
+        {
+          id: 'recent_inbox',
+          agent: 'email-agent',
+          tool: 'search_emails',
+          inputMapping: {
+            query: 'follow up',
+            maxResults: 5,
+          },
+        },
+      ],
+    });
+  }
 
   /**
    * Start a workflow execution
@@ -134,16 +73,26 @@ export class WorkflowOrchestratorService {
       }
 
       // Create workflow run record
+      const { userToken, ...sanitizedContext } = context;
+
+      if (!workflow.stages.length) {
+        throw new Error(`Workflow ${workflowName} has no stages defined`);
+      }
+
       const workflowRun = this.workflowRunRepository.create({
         workflowName,
         userId,
         status: WorkflowStatus.PENDING,
-        context,
+        context: sanitizedContext,
         currentStage: workflow.stages[0].id,
         retryCount: 0,
       });
 
       await this.workflowRunRepository.save(workflowRun);
+
+      if (userToken) {
+        this.workflowTokens.set(workflowRun.id, userToken);
+      }
 
       // Start execution asynchronously
       this.executeWorkflow(workflowRun.id).catch((error) => {
@@ -179,6 +128,12 @@ export class WorkflowOrchestratorService {
         throw new Error(`Workflow not found: ${workflowRun.workflowName}`);
       }
 
+      const userToken = this.workflowTokens.get(workflowRunId);
+
+      if (!userToken) {
+        throw new Error('User token not available for workflow execution');
+      }
+
       // Update status to running
       workflowRun.status = WorkflowStatus.RUNNING;
       workflowRun.startedAt = new Date();
@@ -209,7 +164,7 @@ export class WorkflowOrchestratorService {
             stage.tool,
             stageInput,
             {
-              userToken: workflowRun.context.userToken,
+              userToken,
               userId: workflowRun.userId,
             },
           );
@@ -262,6 +217,8 @@ export class WorkflowOrchestratorService {
       }
 
       throw error;
+    } finally {
+      this.workflowTokens.delete(workflowRunId);
     }
   }
 
@@ -344,6 +301,7 @@ export class WorkflowOrchestratorService {
       await this.workflowRunRepository.save(workflowRun);
 
       this.logger.log(`Workflow ${workflowRunId} cancelled`);
+      this.workflowTokens.delete(workflowRunId);
     } catch (error) {
       this.logger.error('Error cancelling workflow', error);
       throw error;

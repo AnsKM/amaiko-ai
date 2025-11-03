@@ -148,19 +148,21 @@ export class CalendarToolsService {
    * Update an existing calendar event
    */
   async updateCalendarEvent(
-    eventId: string,
-    updates: Partial<CalendarEventParams>,
+    params: {
+      eventId: string;
+      updates: Partial<CalendarEventParams>;
+    },
     context: McpContext,
   ): Promise<McpToolResult> {
     try {
       this.logger.log(
-        `Updating calendar event ${eventId} for user ${context.userId}`,
+        `Updating calendar event ${params.eventId} for user ${context.userId}`,
       );
 
       const event = await this.graphService.updateCalendarEvent(
         context.userToken,
-        eventId,
-        updates,
+        params.eventId,
+        params.updates,
       );
 
       return {
@@ -206,15 +208,18 @@ export class CalendarToolsService {
    * Delete a calendar event
    */
   async deleteCalendarEvent(
-    eventId: string,
+    params: { eventId: string },
     context: McpContext,
   ): Promise<McpToolResult> {
     try {
       this.logger.log(
-        `Deleting calendar event ${eventId} for user ${context.userId}`,
+        `Deleting calendar event ${params.eventId} for user ${context.userId}`,
       );
 
-      await this.graphService.deleteCalendarEvent(context.userToken, eventId);
+      await this.graphService.deleteCalendarEvent(
+        context.userToken,
+        params.eventId,
+      );
 
       return {
         content: [
@@ -223,7 +228,7 @@ export class CalendarToolsService {
             text: JSON.stringify({
               status: 'success',
               message: 'Calendar event deleted successfully',
-              eventId,
+              eventId: params.eventId,
             }),
           },
         ],

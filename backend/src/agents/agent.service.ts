@@ -292,7 +292,8 @@ export class AgentService {
       }
 
       // Execute the tool method
-      const result = await toolService[methodName](params, context);
+      const safeParams = params ?? {};
+      const result = await toolService[methodName](safeParams, context);
 
       return result;
     } catch (error) {

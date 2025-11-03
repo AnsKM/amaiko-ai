@@ -10,7 +10,7 @@ services:
       dockerfile: Dockerfile
     container_name: amaiko-backend
     ports:
-      - "8100:3000"
+      - "127.0.0.1:8100:3000"
     environment:
       # Application
       NODE_ENV: ${NODE_ENV:-development}
@@ -21,7 +21,7 @@ services:
       DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:-password}@postgres:5432/${POSTGRES_DB:-amaiko}
 
       # Redis
-      REDIS_URL: redis://redis:6379
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
 
       # Letta
       LETTA_BASE_URL: http://letta:8283
@@ -87,7 +87,7 @@ services:
       dockerfile: Dockerfile
     container_name: amaiko-frontend
     ports:
-      - "8200:3000"
+      - "127.0.0.1:8200:3000"
     environment:
       NODE_ENV: ${NODE_ENV:-development}
       NEXT_PUBLIC_API_URL: http://backend:3000
@@ -113,7 +113,7 @@ services:
       POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
       PGDATA: /var/lib/postgresql/data/pgdata
     ports:
-      - "5434:5432"
+      - "127.0.0.1:5434:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./backend/database/init:/docker-entrypoint-initdb.d
@@ -132,16 +132,18 @@ services:
   redis:
     image: redis:8-alpine
     container_name: amaiko-redis
-    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-}
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:?REDIS_PASSWORD must be set}
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
     ports:
-      - "6380:6379"
+      - "127.0.0.1:6380:6379"
     volumes:
       - redis_data:/data
     networks:
       - amaiko-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD-SHELL", "redis-cli -a ${REDIS_PASSWORD} ping"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -153,7 +155,7 @@ services:
     image: letta/letta:latest
     container_name: amaiko-letta
     ports:
-      - "8285:8283"
+      - "127.0.0.1:8285:8283"
     environment:
       LETTA_SERVER_PASS: ${LETTA_API_KEY}
       OPENAI_API_KEY: ${OPENAI_API_KEY}
@@ -182,7 +184,7 @@ services:
     image: chromadb/chroma:latest
     container_name: amaiko-chromadb
     ports:
-      - "8002:8000"
+      - "127.0.0.1:8002:8000"
     environment:
       CHROMA_SERVER_AUTH_CREDENTIALS: ${CHROMA_AUTH_CREDENTIALS:-}
       CHROMA_SERVER_AUTH_PROVIDER: ${CHROMA_AUTH_PROVIDER:-}
@@ -233,7 +235,7 @@ services:
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
       PGADMIN_CONFIG_SERVER_MODE: 'False'
     ports:
-      - "5050:80"
+      - "127.0.0.1:5050:80"
     volumes:
       - pgadmin_data:/var/lib/pgadmin
     depends_on:
@@ -251,10 +253,10 @@ services:
     image: rediscommander/redis-commander:latest
     container_name: amaiko-redis-commander
     environment:
-      REDIS_HOSTS: local:redis:6380
-      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+      REDIS_HOSTS: local:redis:6379:${REDIS_PASSWORD}
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
     ports:
-      - "8081:8081"
+      - "127.0.0.1:8081:8081"
     depends_on:
       - redis
     networks:

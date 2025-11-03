@@ -98,15 +98,17 @@ export class EmailToolsService {
    * Get full email details by ID
    */
   async getEmail(
-    messageId: string,
+    params: { messageId: string },
     context: McpContext,
   ): Promise<McpToolResult> {
     try {
-      this.logger.log(`Getting email ${messageId} for user ${context.userId}`);
+      this.logger.log(
+        `Getting email ${params.messageId} for user ${context.userId}`,
+      );
 
       const email = await this.graphService.getEmail(
         context.userToken,
-        messageId,
+        params.messageId,
       );
 
       return {

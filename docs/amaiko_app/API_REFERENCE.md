@@ -66,7 +66,7 @@ Amaiko AI uses multiple authentication mechanisms:
 ```
 ┌──────────────┐                                   ┌─────────────┐
 │              │                                   │             │
-│  Microsoft   │◄─────── (1) Auth Request ────────┤   Client    │
+│  Microsoft   │◄─────── (1) Auth Request ─────────┤   Client    │
 │  Teams Bot   │                                   │ Application │
 │              │                                   │             │
 └───────┬──────┘                                   └─────────────┘
@@ -74,22 +74,22 @@ Amaiko AI uses multiple authentication mechanisms:
         │ (2) User Token
         ▼
 ┌──────────────────────────────────────────────────────────────┐
-│                    Amaiko Backend                             │
-│                                                               │
+│                    Amaiko Backend                            │
+│                                                              │
 │  ┌──────────────────┐          ┌─────────────────────┐       │
 │  │ GraphAuthService │◄────────▶│   AgentService      │       │
 │  │                  │          │                     │       │
 │  │  OBO Token Flow  │          │  Create/Get Agent   │       │
 │  └────────┬─────────┘          └─────────────────────┘       │
-│           │                                                   │
-│           │ (3) Exchange Token                                │
-│           ▼                                                   │
-│  ┌──────────────────┐                                         │
-│  │  Azure AD MSAL   │                                         │
-│  │                  │                                         │
-│  │  acquireTokenOBO │                                         │
-│  └────────┬─────────┘                                         │
-└───────────┼─────────────────────────────────────────────────┘
+│           │                                                  │
+│           │ (3) Exchange Token                               │
+│           ▼                                                  │
+│  ┌──────────────────┐                                        │
+│  │  Azure AD MSAL   │                                        │
+│  │                  │                                        │
+│  │  acquireTokenOBO │                                        │
+│  └────────┬─────────┘                                        │
+└───────────┼──────────────────────────────────────────────────┘
             │
             │ (4) Graph API Token
             ▼
@@ -117,11 +117,11 @@ Amaiko AI uses multiple authentication mechanisms:
 
 **Query Parameters:**
 
-| Parameter    | Type     | Required | Description                           |
-|-------------|----------|----------|---------------------------------------|
-| redirect_uri| string   | Yes      | OAuth redirect URI                    |
-| scopes      | string[] | No       | Requested permission scopes           |
-| state       | string   | No       | State parameter for CSRF protection   |
+| Parameter    | Type     | Required | Description                         |
+| ------------ | -------- | -------- | ----------------------------------- |
+| redirect_uri | string   | Yes      | OAuth redirect URI                  |
+| scopes       | string[] | No       | Requested permission scopes         |
+| state        | string   | No       | State parameter for CSRF protection |
 
 **Request Example:**
 
@@ -2080,16 +2080,16 @@ All API errors follow a consistent format:
 
 ### Error Codes
 
-| Code | HTTP Status | Description |
-|------|------------|-------------|
-| `AUTHENTICATION_FAILED` | 401 | Authentication failed or token expired |
-| `INSUFFICIENT_PERMISSIONS` | 403 | User lacks required permissions |
-| `RESOURCE_NOT_FOUND` | 404 | Requested resource not found |
-| `INVALID_REQUEST` | 400 | Request parameters are invalid |
-| `RATE_LIMIT_EXCEEDED` | 429 | Too many requests |
-| `GRAPH_API_ERROR` | 502 | Error from Microsoft Graph API |
-| `LETTA_API_ERROR` | 502 | Error from Letta API |
-| `INTERNAL_SERVER_ERROR` | 500 | Internal server error |
+| Code                         | HTTP Status | Description                            |
+| ---------------------------- | ----------- | -------------------------------------- |
+| `AUTHENTICATION_FAILED`    | 401         | Authentication failed or token expired |
+| `INSUFFICIENT_PERMISSIONS` | 403         | User lacks required permissions        |
+| `RESOURCE_NOT_FOUND`       | 404         | Requested resource not found           |
+| `INVALID_REQUEST`          | 400         | Request parameters are invalid         |
+| `RATE_LIMIT_EXCEEDED`      | 429         | Too many requests                      |
+| `GRAPH_API_ERROR`          | 502         | Error from Microsoft Graph API         |
+| `LETTA_API_ERROR`          | 502         | Error from Letta API                   |
+| `INTERNAL_SERVER_ERROR`    | 500         | Internal server error                  |
 
 ### Retry Logic
 
@@ -2142,12 +2142,12 @@ X-RateLimit-Reset: 1699027200
 
 ### Rate Limits by Endpoint
 
-| Endpoint | Rate Limit | Window |
-|----------|-----------|--------|
-| `/api/v1/agents/:agentId/chat` | 60 requests | 1 minute |
-| `/api/v1/workflows/start` | 10 requests | 1 minute |
-| `/api/v1/auth/*` | 5 requests | 1 minute |
-| All other endpoints | 100 requests | 1 minute |
+| Endpoint                         | Rate Limit   | Window   |
+| -------------------------------- | ------------ | -------- |
+| `/api/v1/agents/:agentId/chat` | 60 requests  | 1 minute |
+| `/api/v1/workflows/start`      | 10 requests  | 1 minute |
+| `/api/v1/auth/*`               | 5 requests   | 1 minute |
+| All other endpoints              | 100 requests | 1 minute |
 
 ### Handling Rate Limits
 
@@ -2214,47 +2214,47 @@ Client should wait until `resetAt` before retrying.
 
 ### Authentication Endpoints
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/v1/auth/authorize` | Get authorization URL |
-| POST | `/api/v1/auth/token` | Exchange authorization code |
-| POST | `/api/v1/auth/refresh` | Refresh access token |
-| POST | `/api/v1/auth/obo` | Acquire OBO token |
+| Method | Endpoint                   | Description                 |
+| ------ | -------------------------- | --------------------------- |
+| GET    | `/api/v1/auth/authorize` | Get authorization URL       |
+| POST   | `/api/v1/auth/token`     | Exchange authorization code |
+| POST   | `/api/v1/auth/refresh`   | Refresh access token        |
+| POST   | `/api/v1/auth/obo`       | Acquire OBO token           |
 
 ### Agent Endpoints
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/v1/agents` | Create agent |
-| GET | `/api/v1/agents/:userId` | Get agent |
-| POST | `/api/v1/agents/:agentId/chat` | Chat with agent |
-| PATCH | `/api/v1/agents/:agentId/memory` | Update agent memory |
-| DELETE | `/api/v1/agents/:agentId` | Deactivate agent |
+| Method | Endpoint                           | Description         |
+| ------ | ---------------------------------- | ------------------- |
+| POST   | `/api/v1/agents`                 | Create agent        |
+| GET    | `/api/v1/agents/:userId`         | Get agent           |
+| POST   | `/api/v1/agents/:agentId/chat`   | Chat with agent     |
+| PATCH  | `/api/v1/agents/:agentId/memory` | Update agent memory |
+| DELETE | `/api/v1/agents/:agentId`        | Deactivate agent    |
 
 ### Workflow Endpoints
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/v1/workflows` | List workflows |
-| POST | `/api/v1/workflows/start` | Start workflow |
-| GET | `/api/v1/workflows/:workflowRunId` | Get workflow status |
-| DELETE | `/api/v1/workflows/:workflowRunId` | Cancel workflow |
-| GET | `/api/v1/workflows/user/:userId` | Get user workflows |
+| Method | Endpoint                             | Description         |
+| ------ | ------------------------------------ | ------------------- |
+| GET    | `/api/v1/workflows`                | List workflows      |
+| POST   | `/api/v1/workflows/start`          | Start workflow      |
+| GET    | `/api/v1/workflows/:workflowRunId` | Get workflow status |
+| DELETE | `/api/v1/workflows/:workflowRunId` | Cancel workflow     |
+| GET    | `/api/v1/workflows/user/:userId`   | Get user workflows  |
 
 ### Webhook Endpoints
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/webhooks/graph` | Microsoft Graph notifications |
-| POST | `/webhooks/teams` | Teams activity notifications |
+| Method | Endpoint            | Description                   |
+| ------ | ------------------- | ----------------------------- |
+| POST   | `/webhooks/graph` | Microsoft Graph notifications |
+| POST   | `/webhooks/teams` | Teams activity notifications  |
 
 ### Health & Monitoring
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/health` | Health check |
-| GET | `/metrics` | Prometheus metrics |
-| GET | `/version` | API version info |
+| Method | Endpoint     | Description        |
+| ------ | ------------ | ------------------ |
+| GET    | `/health`  | Health check       |
+| GET    | `/metrics` | Prometheus metrics |
+| GET    | `/version` | API version info   |
 
 ---
 
@@ -2271,6 +2271,7 @@ This API reference documentation provides comprehensive coverage of all Amaiko A
 5. **Security**: Always use HTTPS, validate tokens, and protect sensitive data
 
 **Related Documentation:**
+
 - `/docs/amaiko_app/ARCHITECTURE.md` - System architecture
 - `/docs/amaiko_app/BOT_FRAMEWORK.md` - Microsoft Teams bot implementation
 - `/docs/amaiko_app/AGENT_FRAMEWORK.md` - Letta agent framework
